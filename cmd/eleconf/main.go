@@ -169,6 +169,13 @@ func applyAction(c *cli.Context) error {
 
 	changes = append(changes, mtChanges...)
 
+	stChanges, err := internal.GetStatusChanges(ctx, clients, conf)
+	if err != nil {
+		return fmt.Errorf("calculate status changes: %w", err)
+	}
+
+	changes = append(changes, stChanges...)
+
 	for _, change := range changes {
 		op, info := change.Describe()
 
