@@ -97,7 +97,7 @@ func LoadSchemaSet(
 	init bool,
 ) (_ []LoadedSchema, outErr error) {
 	if lockfile == nil && !init {
-		return nil, errors.New("missing lock file, run eleconf init")
+		return nil, errors.New("missing lock file, run eleconf update")
 	}
 
 	var source SchemaSource

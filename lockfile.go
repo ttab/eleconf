@@ -64,12 +64,12 @@ func (lf *SchemaLockfile) Check(
 	case init && !ok:
 		return nil
 	case !ok:
-		return fmt.Errorf("missing lock file entry for %q, run eleconf init", name)
+		return fmt.Errorf("missing lock file entry for %q, run eleconf update", name)
 	case init && loaded.Lock.Version != lock.Version:
 		return nil
 	case loaded.Lock.Version != lock.Version:
 		return fmt.Errorf(
-			"lock file version mismatch for %q, got %s expected %s, run eleconf init",
+			"lock file version mismatch for %q, got %s expected %s, run eleconf update",
 			name, loaded.Lock.Version, lock.Version)
 	case loaded.Lock.Hash != lock.Hash:
 		return fmt.Errorf("lock file hash mismatch for %q", name)
