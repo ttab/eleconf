@@ -1,19 +1,19 @@
 {
-  "updated": "2025-06-18T08:17:49.673279312+02:00",
+  "updated": "2025-07-01T12:22:59.467652645+02:00",
   "schemas": {
     "core": {
       "name": "core",
-      "version": "v1.0.4",
+      "version": "v1.0.5-pre1",
       "hash": "b4898b80520aaaf4ed2d1f6101f468c441f6d725880923458cbf61a39811cb02"
     },
     "core-metadoc": {
       "name": "core-metadoc",
-      "version": "v1.0.4",
+      "version": "v1.0.5-pre1",
       "hash": "d98cbdbf7102e9c441b85b18d55ae4ccaa9c5346d17cbda12781929849fdbbd5"
     },
     "core-planning": {
       "name": "core-planning",
-      "version": "v1.0.4",
+      "version": "v1.0.5-pre1",
       "hash": "0a0995aeba4c4684b8d00722aa98609cfface35114fb67a597678c29d395a217"
     },
     "tt": {

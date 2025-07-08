@@ -176,6 +176,13 @@ func applyAction(c *cli.Context) error {
 
 	changes = append(changes, stChanges...)
 
+	wfChanges, err := internal.GetWorkflowChanges(ctx, clients, conf)
+	if err != nil {
+		return fmt.Errorf("calculate workflow changes: %w", err)
+	}
+
+	changes = append(changes, wfChanges...)
+
 	for _, change := range changes {
 		op, info := change.Describe()
 
@@ -206,9 +213,6 @@ func applyAction(c *cli.Context) error {
 		}
 	}
 
-	// TODO: Check if statuses exist.
-	// TODO: Check workflows.
-
 	println()
 
 	if len(changes) == 0 {
@@ -227,6 +231,10 @@ func applyAction(c *cli.Context) error {
 
 	for _, change := range changes {
 		op, info := change.Describe()
+
+		info, _, _ = strings.Cut(info, "\n")
+		info = strings.TrimRight(info, ":")
+
 		fmt.Println(op, info)
 
 		err := change.Execute(ctx, clients)
@@ -234,6 +242,9 @@ func applyAction(c *cli.Context) error {
 			return fmt.Errorf("failed to apply change: %w", err)
 		}
 	}
+
+	println()
+	println("Configuration has been updated")
 
 	return nil
 }

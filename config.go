@@ -20,7 +20,7 @@ type DocumentConfig struct {
 	Type        string             `hcl:"type,label"`
 	MetaDocType string             `hcl:"meta_doc,optional"`
 	Statuses    []string           `hcl:"statuses,optional"`
-	Workflow    DocumentWorkflow   `hcl:"workflow,optional"`
+	Workflow    *DocumentWorkflow  `hcl:"workflow,optional"`
 	Attachments []AttachmentConfig `hcl:"attachment,block"`
 }
 

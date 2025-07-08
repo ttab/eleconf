@@ -1,5 +1,5 @@
 schema_set "core" {
-  version      = "v1.0.4"
+  version      = "v1.0.5-pre1"
   repository   = "https://github.com/ttab/revisorschemas.git"
 
   schemas = [
