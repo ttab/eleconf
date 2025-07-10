@@ -67,8 +67,10 @@ func getClients(
 
 	var token oauth2.TokenSource
 
+	// Including doc_read here lets unprivileged client check if the state
+	// is clean.
 	scopes := []string{
-		"workflow_admin", "schema_admin",
+		"workflow_admin", "schema_admin", "doc_read",
 	}
 
 	if clientSecret != "" {

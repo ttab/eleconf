@@ -51,41 +51,44 @@ func main() {
 		},
 	}
 
+	authFlags := []cli.Flag{
+		&cli.StringFlag{
+			Name:    "auth-env",
+			Usage:   "Auth environment",
+			EnvVars: []string{"AUTH_ENV"},
+		},
+		&cli.StringFlag{
+			Name:     "endpoint",
+			Usage:    "Elephant repository endpoint",
+			EnvVars:  []string{"ENDPOINT"},
+			Required: true,
+		},
+		&cli.StringFlag{
+			Name:     "customer",
+			Usage:    "Elephant customer",
+			EnvVars:  []string{"CUSTOMER"},
+			Required: true,
+		},
+		&cli.StringFlag{
+			Name:    "client-id",
+			Usage:   "Client ID",
+			EnvVars: []string{"CLIENT_ID"},
+		},
+		&cli.StringFlag{
+			Name:    "client-secret",
+			Usage:   "Client secret",
+			EnvVars: []string{"CLIENT_SECRET"},
+		},
+	}
+
+	applyCmd.Flags = append(applyCmd.Flags, authFlags...)
+
 	app := cli.App{
 		Name:  "eleconf",
 		Usage: "Elephant repository configuration tool",
 		Commands: []*cli.Command{
 			&updateCmd,
 			&applyCmd,
-		},
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "auth-env",
-				Usage:   "Auth environment",
-				EnvVars: []string{"AUTH_ENV"},
-			},
-			&cli.StringFlag{
-				Name:     "endpoint",
-				Usage:    "Elephant repository endpoint",
-				EnvVars:  []string{"ENDPOINT"},
-				Required: true,
-			},
-			&cli.StringFlag{
-				Name:     "customer",
-				Usage:    "Elephant customer",
-				EnvVars:  []string{"CUSTOMER"},
-				Required: true,
-			},
-			&cli.StringFlag{
-				Name:    "client-id",
-				Usage:   "Client ID",
-				EnvVars: []string{"CLIENT_ID"},
-			},
-			&cli.StringFlag{
-				Name:    "client-secret",
-				Usage:   "Client secret",
-				EnvVars: []string{"CLIENT_SECRET"},
-			},
 		},
 	}
 
