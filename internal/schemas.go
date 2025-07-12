@@ -17,7 +17,7 @@ func GetSchemaChanges(
 	ctx context.Context,
 	clients Clients,
 	conf *eleconf.Config,
-	lock *eleconf.SchemaLockfile,
+	loaded []eleconf.LoadedSchema,
 ) ([]ConfigurationChange, error) {
 	schemas := clients.GetSchemas()
 
@@ -28,8 +28,8 @@ func GetSchemaChanges(
 			"get active schemas: %w", err)
 	}
 
-	loaded, activateSchemas, err := getSchemaChanges(
-		ctx, conf.SchemaSets, lock, active.Schemas)
+	activateSchemas, err := getSchemaChanges(
+		ctx, loaded, active.Schemas)
 	if err != nil {
 		return nil, err
 	}
@@ -119,22 +119,9 @@ func checkDocsDefined(
 
 func getSchemaChanges(
 	ctx context.Context,
-	sets []eleconf.SchemaSet,
-	lock *eleconf.SchemaLockfile,
+	schemas []eleconf.LoadedSchema,
 	active []*repository.Schema,
-) ([]eleconf.LoadedSchema, []schemaChange, error) {
-	var schemas []eleconf.LoadedSchema
-
-	for _, set := range sets {
-		loaded, err := eleconf.LoadSchemaSet(ctx, set, lock, false)
-		if err != nil {
-			return nil, nil, fmt.Errorf("load schema set %q: %w",
-				set.Name, err)
-		}
-
-		schemas = append(schemas, loaded...)
-	}
-
+) ([]schemaChange, error) {
 	wantedLookup := make(map[string]eleconf.LoadedSchema, len(schemas))
 
 	for _, s := range schemas {
@@ -165,7 +152,7 @@ func getSchemaChanges(
 				s.Version,
 				wanted.Lock.Version)
 			if err != nil {
-				return nil, nil, fmt.Errorf(
+				return nil, fmt.Errorf(
 					"compare %s versions: %w",
 					s.Name, err)
 			}
@@ -195,7 +182,7 @@ func getSchemaChanges(
 		})
 	}
 
-	return schemas, changes, nil
+	return changes, nil
 }
 
 type schemaChange struct {

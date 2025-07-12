@@ -151,6 +151,18 @@ func applyAction(c *cli.Context) error {
 		return fmt.Errorf("load lock file: %w", err)
 	}
 
+	var schemas []eleconf.LoadedSchema
+
+	for _, set := range conf.SchemaSets {
+		loaded, err := eleconf.LoadSchemaSet(ctx, set, lock, false)
+		if err != nil {
+			return fmt.Errorf("load schema set %q: %w",
+				set.Name, err)
+		}
+
+		schemas = append(schemas, loaded...)
+	}
+
 	clients, err := getClients(ctx, c)
 	if err != nil {
 		return fmt.Errorf("get API clients: %w", err)
@@ -158,7 +170,8 @@ func applyAction(c *cli.Context) error {
 
 	var changes []internal.ConfigurationChange
 
-	scChanges, err := internal.GetSchemaChanges(ctx, clients, conf, lock)
+	scChanges, err := internal.GetSchemaChanges(
+		ctx, clients, conf, schemas)
 	if err != nil {
 		return fmt.Errorf("calculate schema changes: %w", err)
 	}
