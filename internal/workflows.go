@@ -16,35 +16,41 @@ func GetWorkflowChanges(
 	clients Clients,
 	conf *eleconf.Config,
 ) ([]ConfigurationChange, error) {
+	schemas := clients.GetSchemas()
 	workflows := clients.GetWorkflows()
 
 	wantMap := make(map[string]*eleconf.DocumentWorkflow)
 	currMap := make(map[string]*eleconf.DocumentWorkflow)
 
-	for _, doc := range conf.Documents {
-		curr, err := workflows.GetWorkflow(ctx,
-			&repository.GetWorkflowRequest{
-				Type: doc.Type,
-			})
-		if err != nil &&
-			!elephantine.IsTwirpErrorCode(err, twirp.NotFound) {
-			return nil, fmt.Errorf(
-				"get current workflow for %q: %w",
-				doc.Type, err)
-		}
-
-		if curr != nil {
-			currMap[doc.Type] = rpcToWorkflow(curr.Workflow)
-		}
-
-		if doc.Workflow != nil {
-			wantMap[doc.Type] = doc.Workflow
-		}
+	currTypes, err := schemas.GetDocumentTypes(ctx,
+		&repository.GetDocumentTypesRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("get current document types: %w", err)
 	}
 
-	// TODO: No way to enumerate all workflows or document types in the
-	// repo. Removing a doc type from config will therefore not remove the
-	// workflow.
+	for _, typ := range currTypes.Types {
+		curr, err := workflows.GetWorkflow(ctx,
+			&repository.GetWorkflowRequest{
+				Type: typ,
+			})
+		if elephantine.IsTwirpErrorCode(err, twirp.NotFound) {
+			continue
+		} else if err != nil {
+			return nil, fmt.Errorf(
+				"get current workflow for %q: %w",
+				typ, err)
+		}
+
+		currMap[typ] = rpcToWorkflow(curr.Workflow)
+	}
+
+	for _, doc := range conf.Documents {
+		if doc.Workflow == nil {
+			continue
+		}
+
+		wantMap[doc.Type] = doc.Workflow
+	}
 
 	var changes []ConfigurationChange
 
