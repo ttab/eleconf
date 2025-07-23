@@ -89,6 +89,18 @@ document "core/article" {
 }
 ```
 
+### Metrics
+
+Metric blocks are used to configure metric kinds:
+
+``` hcl
+metric "charcount" {
+  aggregation = "replace"
+}
+```
+
+`aggregation` can be "replace" or "increment", defaults to "replace".
+
 ## Usage
 
 All changes to schemas require lockfile update. So the first thing you have to do for a new configuration directory is to run the update command. This will not change anything in the repository, but will check that the referenced schema versions exist and update the lock file.
