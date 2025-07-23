@@ -168,43 +168,10 @@ func applyAction(c *cli.Context) error {
 		return fmt.Errorf("get API clients: %w", err)
 	}
 
-	var changes []internal.ConfigurationChange
-
-	scChanges, err := internal.GetSchemaChanges(
-		ctx, clients, conf, schemas)
+	changes, err := internal.GetChanges(ctx, clients, conf, schemas)
 	if err != nil {
-		return fmt.Errorf("calculate schema changes: %w", err)
+		return fmt.Errorf("get changes: %w", err)
 	}
-
-	changes = append(changes, scChanges...)
-
-	mtChanges, err := internal.GetMetaTypeChanges(ctx, clients, conf)
-	if err != nil {
-		return fmt.Errorf("calculate meta type changes: %w", err)
-	}
-
-	changes = append(changes, mtChanges...)
-
-	stChanges, err := internal.GetStatusChanges(ctx, clients, conf)
-	if err != nil {
-		return fmt.Errorf("calculate status changes: %w", err)
-	}
-
-	changes = append(changes, stChanges...)
-
-	wfChanges, err := internal.GetWorkflowChanges(ctx, clients, conf)
-	if err != nil {
-		return fmt.Errorf("calculate workflow changes: %w", err)
-	}
-
-	changes = append(changes, wfChanges...)
-
-	meChanges, err := internal.GetMetricsChanges(ctx, clients, conf)
-	if err != nil {
-		return fmt.Errorf("calculate metrics changes: %w", err)
-	}
-
-	changes = append(changes, meChanges...)
 
 	for _, change := range changes {
 		op, info := change.Describe()
