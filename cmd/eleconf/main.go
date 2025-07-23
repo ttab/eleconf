@@ -199,6 +199,13 @@ func applyAction(c *cli.Context) error {
 
 	changes = append(changes, wfChanges...)
 
+	meChanges, err := internal.GetMetricsChanges(ctx, clients, conf)
+	if err != nil {
+		return fmt.Errorf("calculate metrics changes: %w", err)
+	}
+
+	changes = append(changes, meChanges...)
+
 	for _, change := range changes {
 		op, info := change.Describe()
 

@@ -14,6 +14,7 @@ import (
 type Config struct {
 	Documents  []DocumentConfig `hcl:"document,block"`
 	SchemaSets []SchemaSet      `hcl:"schema_set,block"`
+	Metric     []MetricKind     `hcl:"metric,block"`
 }
 
 type DocumentConfig struct {
@@ -45,6 +46,18 @@ type AttachmentConfig struct {
 	MatchMimetype []string `hcl:"match_mimetype"`
 }
 
+type MetricKind struct {
+	Kind        string            `hcl:"kind,label"`
+	Aggregation MetricAggregation `hcl:"aggregation,optional"`
+}
+
+type MetricAggregation string
+
+const (
+	MetricAggregationReplace   MetricAggregation = "replace"
+	MetricAggregationIncrement MetricAggregation = "increment"
+)
+
 type SchemaLock struct {
 	Name    string `json:"name"`
 	URL     string `json:"url,omitempty"`
@@ -69,10 +82,7 @@ func ReadConfigFromDirectory(path string) (*Config, error) {
 			continue
 		}
 
-		var c Config
-
-		err := hclsimple.DecodeFile(
-			filepath.Join(path, entry.Name()), nil, &c)
+		c, err := parseFile(filepath.Join(path, entry.Name()))
 		if err != nil {
 			return nil, fmt.Errorf(
 				"parse %q: %w", entry.Name(), err)
@@ -80,9 +90,33 @@ func ReadConfigFromDirectory(path string) (*Config, error) {
 
 		tutti.SchemaSets = append(tutti.SchemaSets, c.SchemaSets...)
 		tutti.Documents = append(tutti.Documents, c.Documents...)
+		tutti.Metric = append(tutti.Metric, c.Metric...)
 	}
 
 	return &tutti, nil
+}
+
+func parseFile(path string) (*Config, error) {
+	var c Config
+
+	err := hclsimple.DecodeFile(path, nil, &c)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"decode file: %w", err)
+	}
+
+	for _, m := range c.Metric {
+		switch m.Aggregation {
+		case "", MetricAggregationIncrement, MetricAggregationReplace:
+		default:
+			return nil, fmt.Errorf(
+				"unknown %q metric aggregation %q",
+				m.Kind,
+				m.Aggregation)
+		}
+	}
+
+	return &c, nil
 }
 
 type LoadedSchema struct {

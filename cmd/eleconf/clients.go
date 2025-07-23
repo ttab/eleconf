@@ -17,6 +17,12 @@ var _ internal.Clients = &clients{}
 type clients struct {
 	Workflows repository.Workflows
 	Schemas   repository.Schemas
+	Metrics   repository.Metrics
+}
+
+// GetMetrics implements internal.Clients.
+func (c *clients) GetMetrics() repository.Metrics {
+	return c.Metrics
 }
 
 // GetSchemas implements internal.Clients.
@@ -71,6 +77,7 @@ func getClients(
 	// is clean.
 	scopes := []string{
 		"workflow_admin", "schema_admin", "doc_read",
+		"metrics_admin",
 	}
 
 	if clientSecret != "" {
@@ -103,5 +110,6 @@ func getClients(
 	return &clients{
 		Workflows: repository.NewWorkflowsProtobufClient(endpoint, client),
 		Schemas:   repository.NewSchemasProtobufClient(endpoint, client),
+		Metrics:   repository.NewMetricsProtobufClient(endpoint, client),
 	}, nil
 }
