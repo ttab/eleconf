@@ -1,43 +1,43 @@
 {
-  "updated": "2025-07-10T10:15:10.946146388+02:00",
+  "updated": "2025-08-11T13:18:28.968976676+02:00",
   "schemas": {
     "core": {
       "name": "core",
-      "version": "v1.0.5-pre1",
-      "hash": "b4898b80520aaaf4ed2d1f6101f468c441f6d725880923458cbf61a39811cb02"
+      "version": "v1.0.5",
+      "hash": "6fba9ff9f413516a0135c47408a0b8480b190da9d29292ed19fe75eb7ca7ed3d"
     },
     "core-metadoc": {
       "name": "core-metadoc",
-      "version": "v1.0.5-pre1",
+      "version": "v1.0.5",
       "hash": "d98cbdbf7102e9c441b85b18d55ae4ccaa9c5346d17cbda12781929849fdbbd5"
     },
     "core-planning": {
       "name": "core-planning",
-      "version": "v1.0.5-pre1",
+      "version": "v1.0.5",
       "hash": "0a0995aeba4c4684b8d00722aa98609cfface35114fb67a597678c29d395a217"
     },
     "tt": {
       "name": "tt",
-      "url": "https://raw.githubusercontent.com/ttab/revisorschemas/refs/tags/v1.0.5-pre1/tt.json",
-      "version": "v1.0.5-pre1",
-      "hash": "8500148bcf2914d530498b2e40b0d43d7cb472653dc233dd9e2bdb881024b68d"
+      "url": "https://raw.githubusercontent.com/ttab/revisorschemas/refs/tags/v1.0.5/tt.json",
+      "version": "v1.0.5",
+      "hash": "e62eab3f7bad94fde54cf87cc7c96588f3dd25e2aa7b37833d4153ee0e9779ea"
     },
     "tt-planning": {
       "name": "tt-planning",
-      "url": "https://raw.githubusercontent.com/ttab/revisorschemas/refs/tags/v1.0.5-pre1/tt-planning.json",
-      "version": "v1.0.5-pre1",
+      "url": "https://raw.githubusercontent.com/ttab/revisorschemas/refs/tags/v1.0.5/tt-planning.json",
+      "version": "v1.0.5",
       "hash": "b1569d5a144a2a268f7e0380b3fb5d0db65170709f6094b9ad7c3102bb1445ff"
     },
     "tt-print": {
       "name": "tt-print",
-      "url": "https://raw.githubusercontent.com/ttab/revisorschemas/refs/tags/v1.0.5-pre1/tt-print.json",
-      "version": "v1.0.5-pre1",
+      "url": "https://raw.githubusercontent.com/ttab/revisorschemas/refs/tags/v1.0.5/tt-print.json",
+      "version": "v1.0.5",
       "hash": "ca15f28ec9f995b246df6e4846ef1e9f841019a82f296df3e4dd9898ad049bee"
     },
     "tt-wires": {
       "name": "tt-wires",
-      "url": "https://raw.githubusercontent.com/ttab/revisorschemas/refs/tags/v1.0.5-pre1/tt-wires.json",
-      "version": "v1.0.5-pre1",
+      "url": "https://raw.githubusercontent.com/ttab/revisorschemas/refs/tags/v1.0.5/tt-wires.json",
+      "version": "v1.0.5",
       "hash": "3de41d58f924c6a79711539a427c884e6962715dd0b70ec8c85d8853a29d8559"
     }
   }

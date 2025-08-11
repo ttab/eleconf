@@ -1,5 +1,5 @@
 schema_set "core" {
-  version      = "v1.0.5-pre1"
+  version      = "v1.0.5"
   repository   = "https://github.com/ttab/revisorschemas.git"
 
   schemas = [
@@ -10,7 +10,7 @@ schema_set "core" {
 }
 
 schema_set "tt" {
-  version      = "v1.0.5-pre1"
+  version      = "v1.0.5"
   url_template = "https://raw.githubusercontent.com/ttab/revisorschemas/refs/tags/{{.Version}}/{{.Name}}.json"
 
   schemas = [
