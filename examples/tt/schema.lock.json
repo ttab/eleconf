@@ -1,10 +1,15 @@
 {
-  "updated": "2025-10-01T08:00:25.678102939+02:00",
+  "updated": "2025-10-08T18:19:35.850720828+02:00",
   "schemas": {
     "core": {
       "name": "core",
       "version": "v1.0.6",
       "hash": "57fc92da4761690846fc59c2dc382aa3cc6be1747eb8767eb2271fbad12c1b03"
+    },
+    "core-genai": {
+      "name": "core-genai",
+      "version": "v1.0.7-genai3",
+      "hash": "cadb82451b707cb2a437edebe9deaead1831b7557e6f8994cc59a11717228849"
     },
     "core-metadoc": {
       "name": "core-metadoc",

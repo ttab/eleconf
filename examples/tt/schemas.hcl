@@ -20,3 +20,12 @@ schema_set "tt" {
     "tt-print",
   ]
 }
+
+schema_set "experimental" {
+  version    = "v1.0.7-genai3"
+  repository = "https://github.com/ttab/revisorschemas.git"
+
+  schemas = [
+    "core-genai"
+  ]
+}
