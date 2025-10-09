@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -39,36 +40,25 @@ func getClients(
 	ctx context.Context,
 	c *cli.Context,
 ) (*clients, error) {
-	endpoint := c.String("endpoint")
 	clientID := c.String("client-id")
 	clientSecret := c.String("client-secret")
-	env := c.String("auth-env")
+	env := c.String("env")
 
 	if clientID == "" {
 		clientID = clitools.DefaultApplicationID
 	}
 
-	var oidcServer string
-
-	switch env {
-	case "stage":
-		oidcServer = clitools.StageOIDCServer
-	case "prod":
-		oidcServer = clitools.ProdOIDCServer
-	default:
-		return nil, fmt.Errorf("unknown environment %q", env)
-	}
-
-	oidcURL, err := clitools.OIDCConfigURL(oidcServer, "elephant")
-	if err != nil {
-		return nil, fmt.Errorf("create OIDC config URL: %w", err)
-	}
-
-	conf, err := clitools.NewConfigurationHandler[struct{}](
-		"eleconf", clientID, env, oidcURL,
+	conf, err := clitools.NewConfigurationHandler(
+		appName, clientID, env,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("load configuration: %w", err)
+	}
+
+	endpoint, ok := conf.GetEndpoint("repository")
+	if !ok {
+		return nil, errors.New(
+			"no repository endpoint configured for environment")
 	}
 
 	var token oauth2.TokenSource
@@ -82,7 +72,7 @@ func getClients(
 
 	if clientSecret != "" {
 		t, err := conf.GetClientAccessToken(
-			ctx, env, clientID, clientSecret, scopes)
+			ctx, clientID, clientSecret, scopes)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"get client access token: %w", err)
@@ -90,19 +80,19 @@ func getClients(
 
 		token = t
 	} else {
-		t, err := conf.GetAccessToken(ctx, env, scopes)
+		t, err := conf.GetAccessToken(ctx, scopes)
 		if err != nil {
 			return nil, fmt.Errorf("get access token: %w", err)
+		}
+
+		err = conf.Save()
+		if err != nil {
+			slog.Warn("failed to save configuration", "err", err)
 		}
 
 		token = oauth2.StaticTokenSource(&oauth2.Token{
 			AccessToken: t.Token,
 		})
-	}
-
-	err = conf.Save()
-	if err != nil {
-		slog.Warn("failed to save configuration", "err", err)
 	}
 
 	client := oauth2.NewClient(ctx, token)

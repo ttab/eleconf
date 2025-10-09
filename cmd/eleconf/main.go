@@ -4,22 +4,23 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"io/fs"
 	"log/slog"
 	"os"
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/joho/godotenv"
+	"github.com/ttab/clitools"
 	"github.com/ttab/eleconf"
 	"github.com/ttab/eleconf/internal"
 	"github.com/ttab/elephantine"
 	"github.com/urfave/cli/v2"
 )
 
+const appName = "eleconf"
+
 func main() {
-	err := godotenv.Load()
-	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+	err := clitools.LoadEnv(appName)
+	if err != nil {
 		slog.Error("exiting: ",
 			elephantine.LogKeyError, err)
 		os.Exit(1)
@@ -53,21 +54,8 @@ func main() {
 
 	authFlags := []cli.Flag{
 		&cli.StringFlag{
-			Name:    "auth-env",
-			Usage:   "Auth environment",
-			EnvVars: []string{"AUTH_ENV"},
-		},
-		&cli.StringFlag{
-			Name:     "endpoint",
-			Usage:    "Elephant repository endpoint",
-			EnvVars:  []string{"ENDPOINT"},
-			Required: true,
-		},
-		&cli.StringFlag{
-			Name:     "customer",
-			Usage:    "Elephant customer",
-			EnvVars:  []string{"CUSTOMER"},
-			Required: true,
+			Name:    "env",
+			EnvVars: []string{"ENV"},
 		},
 		&cli.StringFlag{
 			Name:    "client-id",

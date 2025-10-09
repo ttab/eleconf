@@ -9,7 +9,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/hcl/v2 v2.24.0
 	github.com/joho/godotenv v1.5.1
-	github.com/ttab/clitools v0.4.0
+	github.com/ttab/clitools v0.5.2
 	github.com/ttab/elephant-api v0.17.24
 	github.com/ttab/elephantine v0.19.3
 	github.com/ttab/revisor v0.9.4
@@ -47,6 +47,7 @@ require (
 	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/cyphar/filepath-securejoin v0.4.1 // indirect
+	github.com/danjacques/gofslock v0.0.0-20240212154529-d899e02bfe22 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.6.2 // indirect
