@@ -7,13 +7,13 @@ import (
 	"log/slog"
 
 	"github.com/ttab/clitools"
-	"github.com/ttab/eleconf/internal"
+	"github.com/ttab/eleconf"
 	"github.com/ttab/elephant-api/repository"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/oauth2"
 )
 
-var _ internal.Clients = &clients{}
+var _ eleconf.Clients = &clients{}
 
 type clients struct {
 	Workflows repository.Workflows
@@ -21,17 +21,17 @@ type clients struct {
 	Metrics   repository.Metrics
 }
 
-// GetMetrics implements internal.Clients.
+// GetMetrics implements eleconf.Clients.
 func (c *clients) GetMetrics() repository.Metrics {
 	return c.Metrics
 }
 
-// GetSchemas implements internal.Clients.
+// GetSchemas implements eleconf.Clients.
 func (c *clients) GetSchemas() repository.Schemas {
 	return c.Schemas
 }
 
-// GetWorkflows implements internal.Clients.
+// GetWorkflows implements eleconf.Clients.
 func (c *clients) GetWorkflows() repository.Workflows {
 	return c.Workflows
 }

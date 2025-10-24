@@ -1,22 +1,21 @@
-package internal
+package eleconf
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/ttab/eleconf"
 	"github.com/ttab/elephant-api/repository"
 )
 
 func GetMetricsChanges(
 	ctx context.Context,
 	clients Clients,
-	conf *eleconf.Config,
+	conf *Config,
 ) ([]ConfigurationChange, error) {
 	metrics := clients.GetMetrics()
 
-	wantMap := make(map[string]eleconf.MetricAggregation)
-	currMap := make(map[string]eleconf.MetricAggregation)
+	wantMap := make(map[string]MetricAggregation)
+	currMap := make(map[string]MetricAggregation)
 
 	current, err := metrics.GetKinds(ctx, &repository.GetMetricKindsRequest{})
 	if err != nil {
@@ -24,13 +23,13 @@ func GetMetricsChanges(
 	}
 
 	for _, m := range current.Kinds {
-		var agg eleconf.MetricAggregation
+		var agg MetricAggregation
 
 		switch m.Aggregation {
 		case repository.MetricAggregation_INCREMENT:
-			agg = eleconf.MetricAggregationIncrement
+			agg = MetricAggregationIncrement
 		case repository.MetricAggregation_REPLACE:
-			agg = eleconf.MetricAggregationReplace
+			agg = MetricAggregationReplace
 		default:
 			return nil, fmt.Errorf(
 				"unexpected repository.MetricAggregation: %#v", m.Aggregation)
@@ -41,13 +40,13 @@ func GetMetricsChanges(
 
 	for _, m := range conf.Metric {
 		switch m.Aggregation {
-		case eleconf.MetricAggregationIncrement:
-		case eleconf.MetricAggregationReplace:
+		case MetricAggregationIncrement:
+		case MetricAggregationReplace:
 		case "":
-			m.Aggregation = eleconf.MetricAggregationReplace
+			m.Aggregation = MetricAggregationReplace
 		default:
 			return nil, fmt.Errorf(
-				"unexpected eleconf.MetricAggregation: %#v", m.Aggregation)
+				"unexpected MetricAggregation: %#v", m.Aggregation)
 		}
 
 		wantMap[m.Kind] = m.Aggregation
@@ -99,8 +98,8 @@ var _ ConfigurationChange = &MetricUpdate{}
 type MetricUpdate struct {
 	Operation      ChangeOp
 	Kind           string
-	OldAggregation eleconf.MetricAggregation
-	Aggregation    eleconf.MetricAggregation
+	OldAggregation MetricAggregation
+	Aggregation    MetricAggregation
 }
 
 // Describe implements ConfigurationChange.
@@ -131,7 +130,7 @@ func (m *MetricUpdate) Execute(ctx context.Context, c Clients) error {
 	switch m.Operation {
 	case OpAdd, OpUpdate:
 		agg := repository.MetricAggregation_REPLACE
-		if m.Aggregation == eleconf.MetricAggregationIncrement {
+		if m.Aggregation == MetricAggregationIncrement {
 			agg = repository.MetricAggregation_INCREMENT
 		}
 

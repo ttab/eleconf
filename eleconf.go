@@ -1,10 +1,9 @@
-package internal
+package eleconf
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/ttab/eleconf"
 	"github.com/ttab/elephant-api/repository"
 )
 
@@ -17,8 +16,8 @@ type Clients interface {
 func GetChanges(
 	ctx context.Context,
 	clients Clients,
-	conf *eleconf.Config,
-	schemas []eleconf.LoadedSchema,
+	conf *Config,
+	schemas []LoadedSchema,
 ) ([]ConfigurationChange, error) {
 	var changes []ConfigurationChange
 

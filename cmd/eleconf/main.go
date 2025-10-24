@@ -11,7 +11,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/ttab/clitools"
 	"github.com/ttab/eleconf"
-	"github.com/ttab/eleconf/internal"
 	"github.com/ttab/elephantine"
 	"github.com/urfave/cli/v2"
 )
@@ -156,7 +155,7 @@ func applyAction(c *cli.Context) error {
 		return fmt.Errorf("get API clients: %w", err)
 	}
 
-	changes, err := internal.GetChanges(ctx, clients, conf, schemas)
+	changes, err := eleconf.GetChanges(ctx, clients, conf, schemas)
 	if err != nil {
 		return fmt.Errorf("get changes: %w", err)
 	}
@@ -167,17 +166,17 @@ func applyAction(c *cli.Context) error {
 		col := color.New()
 
 		switch op {
-		case internal.OpAdd:
+		case eleconf.OpAdd:
 			col.Add(color.FgGreen)
-		case internal.OpUpdate:
+		case eleconf.OpUpdate:
 			col.Add(color.FgYellow)
-		case internal.OpRemove:
+		case eleconf.OpRemove:
 			col.Add(color.FgRed)
 		default:
-			panic(fmt.Sprintf("unexpected internal.ChangeOp: %#v", op))
+			panic(fmt.Sprintf("unexpected eleconf.ChangeOp: %#v", op))
 		}
 
-		col.Printf("%s ", op)
+		_, _ = col.Printf("%s ", op)
 		fmt.Println(info)
 
 		warnCol := color.New(color.FgWhite, color.BgRed)
@@ -185,7 +184,7 @@ func applyAction(c *cli.Context) error {
 		w, ok := change.(doomsayer)
 		if ok {
 			for _, msg := range w.Warnings() {
-				warnCol.Print(" Warning: ")
+				_, _ = warnCol.Print(" Warning: ")
 				fmt.Printf(" %s\n", msg)
 			}
 		}

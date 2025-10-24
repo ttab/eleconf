@@ -1,18 +1,17 @@
-package internal
+package eleconf
 
 import (
 	"context"
 	"errors"
 	"fmt"
 
-	"github.com/ttab/eleconf"
 	"github.com/ttab/elephant-api/repository"
 )
 
 func GetMetaTypeChanges(
 	ctx context.Context,
 	clients Clients,
-	conf *eleconf.Config,
+	conf *Config,
 ) ([]ConfigurationChange, error) {
 	schemas := clients.GetSchemas()
 

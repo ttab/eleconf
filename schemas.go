@@ -1,4 +1,4 @@
-package internal
+package eleconf
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ttab/eleconf"
 	"github.com/ttab/elephant-api/repository"
 	"github.com/ttab/elephantine"
 	"github.com/ttab/revisor"
@@ -16,8 +15,8 @@ import (
 func GetSchemaChanges(
 	ctx context.Context,
 	clients Clients,
-	conf *eleconf.Config,
-	loaded []eleconf.LoadedSchema,
+	conf *Config,
+	loaded []LoadedSchema,
 ) ([]ConfigurationChange, error) {
 	schemas := clients.GetSchemas()
 
@@ -49,14 +48,6 @@ func GetSchemaChanges(
 	return updates, nil
 }
 
-type schemaOp int
-
-const (
-	schemaOpRegister  schemaOp = 1
-	schemaOpUpgrade   schemaOp = 2
-	schemaOpDowngrade schemaOp = 3
-)
-
 var _ ConfigurationChange = schemaChange{}
 
 func versionCompare(v1 string, v2 string) (int, error) {
@@ -75,8 +66,8 @@ func versionCompare(v1 string, v2 string) (int, error) {
 
 // Check that all doc types are defined in schemas.
 func checkDocsDefined(
-	schemas []eleconf.LoadedSchema,
-	docs []eleconf.DocumentConfig,
+	schemas []LoadedSchema,
+	docs []DocumentConfig,
 ) error {
 	definedDocTypes := make(map[string]bool)
 
@@ -119,10 +110,10 @@ func checkDocsDefined(
 
 func getSchemaChanges(
 	ctx context.Context,
-	schemas []eleconf.LoadedSchema,
+	schemas []LoadedSchema,
 	active []*repository.Schema,
 ) ([]schemaChange, error) {
-	wantedLookup := make(map[string]eleconf.LoadedSchema, len(schemas))
+	wantedLookup := make(map[string]LoadedSchema, len(schemas))
 
 	for _, s := range schemas {
 		wantedLookup[s.Lock.Name] = s
@@ -190,7 +181,7 @@ type schemaChange struct {
 	CurrentVersion string
 	IsDowngrade    bool
 	Deactivate     bool
-	Schema         eleconf.LoadedSchema
+	Schema         LoadedSchema
 }
 
 func (sc schemaChange) Warnings() []string {
