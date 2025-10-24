@@ -13,6 +13,29 @@ type Clients interface {
 	GetMetrics() repository.Metrics
 }
 
+var _ Clients = &StaticClients{}
+
+type StaticClients struct {
+	Workflows repository.Workflows
+	Schemas   repository.Schemas
+	Metrics   repository.Metrics
+}
+
+// GetMetrics implements Clients.
+func (c *StaticClients) GetMetrics() repository.Metrics {
+	return c.Metrics
+}
+
+// GetSchemas implements Clients.
+func (c *StaticClients) GetSchemas() repository.Schemas {
+	return c.Schemas
+}
+
+// GetWorkflows implements Clients.
+func (c *StaticClients) GetWorkflows() repository.Workflows {
+	return c.Workflows
+}
+
 func GetChanges(
 	ctx context.Context,
 	clients Clients,

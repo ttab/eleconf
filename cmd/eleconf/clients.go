@@ -13,33 +13,10 @@ import (
 	"golang.org/x/oauth2"
 )
 
-var _ eleconf.Clients = &clients{}
-
-type clients struct {
-	Workflows repository.Workflows
-	Schemas   repository.Schemas
-	Metrics   repository.Metrics
-}
-
-// GetMetrics implements eleconf.Clients.
-func (c *clients) GetMetrics() repository.Metrics {
-	return c.Metrics
-}
-
-// GetSchemas implements eleconf.Clients.
-func (c *clients) GetSchemas() repository.Schemas {
-	return c.Schemas
-}
-
-// GetWorkflows implements eleconf.Clients.
-func (c *clients) GetWorkflows() repository.Workflows {
-	return c.Workflows
-}
-
 func getClients(
 	ctx context.Context,
 	c *cli.Context,
-) (*clients, error) {
+) (*eleconf.StaticClients, error) {
 	clientID := c.String("client-id")
 	clientSecret := c.String("client-secret")
 	env := c.String("env")
@@ -97,7 +74,7 @@ func getClients(
 
 	client := oauth2.NewClient(ctx, token)
 
-	return &clients{
+	return &eleconf.StaticClients{
 		Workflows: repository.NewWorkflowsProtobufClient(endpoint, client),
 		Schemas:   repository.NewSchemasProtobufClient(endpoint, client),
 		Metrics:   repository.NewMetricsProtobufClient(endpoint, client),
