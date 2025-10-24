@@ -12,10 +12,14 @@ document "core/story" {
 
 document "core/channel" {
   statuses = ["usable"]
+
+  bounded_collection = true
 }
 
 document "core/section" {
   statuses = ["usable"]
+
+  bounded_collection = true
 }
 
 document "core/organisation" {
@@ -28,4 +32,6 @@ document "core/organiser" {
 
 document "core/category" {
   statuses = ["usable"]
+
+  bounded_collection = true
 }

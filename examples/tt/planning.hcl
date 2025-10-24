@@ -16,4 +16,16 @@ document "core/planning-item" {
       "cancelled",
     ]
   }
+
+  time_expression {
+    expression = ".meta(type='core/planning-item').data{start_date:date, end_date:date, tz=date_tz?}"
+  }
+
+  time_expression {
+    expression = ".meta(type='core/assignment').data{start_date:date, end_date:date, tz=date_tz?}"
+  }
+
+  time_expression {
+    expression = ".meta(type='core/assignment').data{start?, publish?}"
+  }
 }

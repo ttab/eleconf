@@ -8,9 +8,8 @@ require (
 	github.com/go-git/go-git/v5 v5.16.2
 	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/hcl/v2 v2.24.0
-	github.com/joho/godotenv v1.5.1
 	github.com/ttab/clitools v0.5.2
-	github.com/ttab/elephant-api v0.17.24
+	github.com/ttab/elephant-api v0.18.3-0.20251022083925-12c702b7ef12
 	github.com/ttab/elephantine v0.19.3
 	github.com/ttab/revisor v0.9.4
 	github.com/twitchtv/twirp v8.1.3+incompatible
@@ -69,6 +68,7 @@ require (
 	github.com/hashicorp/vault/api/auth/kubernetes v0.10.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jellydator/ttlcache/v3 v3.4.0 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect

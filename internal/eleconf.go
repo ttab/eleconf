@@ -58,5 +58,12 @@ func GetChanges(
 
 	changes = append(changes, meChanges...)
 
+	typChanges, err := GetTypeConfigurationChanges(ctx, clients, conf)
+	if err != nil {
+		return nil, fmt.Errorf("calculate type changes: %w", err)
+	}
+
+	changes = append(changes, typChanges...)
+
 	return changes, nil
 }

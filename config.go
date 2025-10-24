@@ -18,11 +18,19 @@ type Config struct {
 }
 
 type DocumentConfig struct {
-	Type        string             `hcl:"type,label"`
-	MetaDocType string             `hcl:"meta_doc,optional"`
-	Statuses    []string           `hcl:"statuses,optional"`
-	Workflow    *DocumentWorkflow  `hcl:"workflow,optional"`
-	Attachments []AttachmentConfig `hcl:"attachment,block"`
+	Type              string             `hcl:"type,label"`
+	MetaDocType       string             `hcl:"meta_doc,optional"`
+	Statuses          []string           `hcl:"statuses,optional"`
+	Workflow          *DocumentWorkflow  `hcl:"workflow,optional"`
+	Attachments       []AttachmentConfig `hcl:"attachment,block"`
+	BoundedCollection bool               `hcl:"bounded_collection,optional"`
+	TimeExpressions   []TimeExpression   `hcl:"time_expression,block"`
+}
+
+type TimeExpression struct {
+	Expression string `hcl:"expression"`
+	Layout     string `hcl:"layout,optional"`
+	Timezone   string `hcl:"timezone,optional"`
 }
 
 type DocumentWorkflow struct {
