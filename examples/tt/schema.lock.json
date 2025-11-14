@@ -1,5 +1,5 @@
 {
-  "updated": "2025-10-08T18:19:35.850720828+02:00",
+  "updated": "2025-10-09T21:17:16.709517152+02:00",
   "schemas": {
     "core": {
       "name": "core",
@@ -8,8 +8,8 @@
     },
     "core-genai": {
       "name": "core-genai",
-      "version": "v1.0.7-genai3",
-      "hash": "cadb82451b707cb2a437edebe9deaead1831b7557e6f8994cc59a11717228849"
+      "version": "v1.0.7-genai5",
+      "hash": "b1ba5e01fcb735e3381577b140db678b2acc053dff023db6761ebbce13f9c9de"
     },
     "core-metadoc": {
       "name": "core-metadoc",

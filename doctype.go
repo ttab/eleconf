@@ -51,6 +51,14 @@ func GetTypeConfigurationChanges(
 					})
 			}
 
+			for _, exp := range current.Configuration.LabelExpressions {
+				s.LabelExpressions = append(s.LabelExpressions,
+					LabelExpression{
+						Expression: exp.Expression,
+						Template:   exp.Template,
+					})
+			}
+
 			spec = s
 		}
 
@@ -59,8 +67,9 @@ func GetTypeConfigurationChanges(
 
 	for _, doc := range conf.Documents {
 		wantMap[doc.Type] = TypeConfigSpec{
-			Bounded:         doc.BoundedCollection,
-			TimeExpressions: doc.TimeExpressions,
+			Bounded:          doc.BoundedCollection,
+			TimeExpressions:  doc.TimeExpressions,
+			LabelExpressions: doc.LabelExpressions,
 		}
 	}
 
@@ -114,8 +123,9 @@ func GetTypeConfigurationChanges(
 }
 
 type TypeConfigSpec struct {
-	Bounded         bool
-	TimeExpressions []TimeExpression
+	Bounded          bool
+	TimeExpressions  []TimeExpression
+	LabelExpressions []LabelExpression
 }
 
 var _ ConfigurationChange = &TypeConfigurationChange{}
@@ -149,6 +159,14 @@ func (t *TypeConfigurationChange) Execute(ctx context.Context, c Clients) error 
 				Expression: exp.Expression,
 				Layout:     exp.Layout,
 				Timezone:   exp.Timezone,
+			})
+	}
+
+	for _, exp := range t.Wanted.LabelExpressions {
+		config.LabelExpressions = append(config.LabelExpressions,
+			&repository.LabelExpression{
+				Expression: exp.Expression,
+				Template:   exp.Template,
 			})
 	}
 

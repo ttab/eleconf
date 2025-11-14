@@ -22,10 +22,11 @@ schema_set "tt" {
 }
 
 schema_set "experimental" {
-  version    = "v1.0.7-genai3"
+  version    = "v1.0.7-genai5"
   repository = "https://github.com/ttab/revisorschemas.git"
 
   schemas = [
     "core-genai"
   ]
 }
+

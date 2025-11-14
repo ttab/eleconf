@@ -28,4 +28,9 @@ document "core/planning-item" {
   time_expression {
     expression = ".meta(type='core/assignment').data{start?, publish?}"
   }
+
+  label_expression {
+    expression = ".links(rel='section')@{uuid}"
+    template   = "section:{{.uuid.Value}}"
+  }
 }
