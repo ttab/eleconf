@@ -1,11 +1,10 @@
-package internal
+package eleconf
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/ttab/eleconf"
 	"github.com/ttab/elephant-api/repository"
 	"github.com/ttab/elephantine"
 	"github.com/twitchtv/twirp"
@@ -14,13 +13,13 @@ import (
 func GetWorkflowChanges(
 	ctx context.Context,
 	clients Clients,
-	conf *eleconf.Config,
+	conf *Config,
 ) ([]ConfigurationChange, error) {
 	schemas := clients.GetSchemas()
 	workflows := clients.GetWorkflows()
 
-	wantMap := make(map[string]*eleconf.DocumentWorkflow)
-	currMap := make(map[string]*eleconf.DocumentWorkflow)
+	wantMap := make(map[string]*DocumentWorkflow)
+	currMap := make(map[string]*DocumentWorkflow)
 
 	currTypes, err := schemas.GetDocumentTypes(ctx,
 		&repository.GetDocumentTypesRequest{})
@@ -104,15 +103,15 @@ type DocWorkflowUpdate struct {
 
 	Operation ChangeOp
 	Type      string
-	Current   *eleconf.DocumentWorkflow
-	Wanted    *eleconf.DocumentWorkflow
+	Current   *DocumentWorkflow
+	Wanted    *DocumentWorkflow
 }
 
 // Describe implements ConfigurationChange.
 func (d *DocWorkflowUpdate) Describe() (ChangeOp, string) {
 	switch d.Operation {
 	case OpAdd:
-		diff := cmp.Diff(eleconf.DocumentWorkflow{}, *d.Wanted)
+		diff := cmp.Diff(DocumentWorkflow{}, *d.Wanted)
 
 		return OpAdd, fmt.Sprintf(
 			"add workflow for %q:\n%s", d.Type, diff)
@@ -159,8 +158,8 @@ func (d *DocWorkflowUpdate) Execute(ctx context.Context, c Clients) error {
 
 func rpcToWorkflow(
 	r *repository.DocumentWorkflow,
-) *eleconf.DocumentWorkflow {
-	c := eleconf.DocumentWorkflow{
+) *DocumentWorkflow {
+	c := DocumentWorkflow{
 		StepZero:           r.StepZero,
 		Checkpoint:         r.Checkpoint,
 		NegativeCheckpoint: r.NegativeCheckpoint,
@@ -171,7 +170,7 @@ func rpcToWorkflow(
 }
 
 func workflowToRPC(
-	c *eleconf.DocumentWorkflow,
+	c *DocumentWorkflow,
 ) *repository.DocumentWorkflow {
 	r := repository.DocumentWorkflow{
 		StepZero:           c.StepZero,

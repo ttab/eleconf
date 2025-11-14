@@ -7,39 +7,16 @@ import (
 	"log/slog"
 
 	"github.com/ttab/clitools"
-	"github.com/ttab/eleconf/internal"
+	"github.com/ttab/eleconf"
 	"github.com/ttab/elephant-api/repository"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/oauth2"
 )
 
-var _ internal.Clients = &clients{}
-
-type clients struct {
-	Workflows repository.Workflows
-	Schemas   repository.Schemas
-	Metrics   repository.Metrics
-}
-
-// GetMetrics implements internal.Clients.
-func (c *clients) GetMetrics() repository.Metrics {
-	return c.Metrics
-}
-
-// GetSchemas implements internal.Clients.
-func (c *clients) GetSchemas() repository.Schemas {
-	return c.Schemas
-}
-
-// GetWorkflows implements internal.Clients.
-func (c *clients) GetWorkflows() repository.Workflows {
-	return c.Workflows
-}
-
 func getClients(
 	ctx context.Context,
 	c *cli.Context,
-) (*clients, error) {
+) (*eleconf.StaticClients, error) {
 	clientID := c.String("client-id")
 	clientSecret := c.String("client-secret")
 	env := c.String("env")
@@ -97,7 +74,7 @@ func getClients(
 
 	client := oauth2.NewClient(ctx, token)
 
-	return &clients{
+	return &eleconf.StaticClients{
 		Workflows: repository.NewWorkflowsProtobufClient(endpoint, client),
 		Schemas:   repository.NewSchemasProtobufClient(endpoint, client),
 		Metrics:   repository.NewMetricsProtobufClient(endpoint, client),

@@ -1,17 +1,16 @@
-package internal
+package eleconf
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/ttab/eleconf"
 	"github.com/ttab/elephant-api/repository"
 )
 
 func GetStatusChanges(
 	ctx context.Context,
 	clients Clients,
-	conf *eleconf.Config,
+	conf *Config,
 ) ([]ConfigurationChange, error) {
 	workflows := clients.GetWorkflows()
 

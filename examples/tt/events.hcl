@@ -16,6 +16,10 @@ document "core/event" {
       "cancelled",
     ]
   }
+
+  time_expression {
+    expression = ".meta(type='core/event').data{start, end}"
+  }
 }
 
 document "core/organiser" {

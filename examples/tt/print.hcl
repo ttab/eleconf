@@ -39,15 +39,15 @@ document "tt/print-flow" {
   ]
 }
 
-# document "tt/tv-channel" {
-#   statuses = [
-#     "usable",
-#   ]
+document "tt/tv-channel" {
+  statuses = [
+    "usable",
+  ]
 
-#   attachment "logo" {
-#     required       = true
-#     match_mimetype = [
-#       "application/pdf",
-#     ]
-#   }
-# }
+  attachment "logo" {
+    required       = true
+    match_mimetype = [
+      "application/pdf",
+    ]
+  }
+}
