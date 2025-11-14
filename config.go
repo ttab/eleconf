@@ -29,14 +29,24 @@ type DocumentConfig struct {
 }
 
 type TimeExpression struct {
+	// Expression is a newsdoc value extraction expression.
 	Expression string `hcl:"expression"`
-	Layout     string `hcl:"layout,optional"`
-	Timezone   string `hcl:"timezone,optional"`
+	// Layout is the time/date format to use when parsing. Optional,
+	// defaults to RFC3339 or ISO 8601 for values annotated as dates.
+	Layout string `hcl:"layout,optional"`
+	// Timezone is the timezone the time should be parsed in. Optional, most
+	// timestamps should include timezone information, if they don't,
+	// parsing will fall back to the default timezone that the repository
+	// has been configured with.
+	Timezone string `hcl:"timezone,optional"`
 }
 
 type LabelExpression struct {
+	// Expression is a newsdoc value extraction expression.
 	Expression string `hcl:"expression"`
-	Template   string `hcl:"template"`
+	// Template is the template that turns the extracted values into a
+	// label.
+	Template string `hcl:"template"`
 }
 
 type DocumentWorkflow struct {
