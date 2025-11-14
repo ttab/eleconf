@@ -51,6 +51,9 @@ Document blocks are used to configure document types.
 * `meta_doc` string: the document type that should be used for meta documents, optional.
 * `statuses` string slice: all the statuses that are valid for the document type.
 * `workflow` object: defintion of the workflow for the document, optional.
+* `bounded_collection` bool: whether the document type is a bounded collection (finite and small number of documents).
+* `time_expression` [object](https://pkg.go.dev/github.com/ttab/eleconf#TimeExpression): time expression used to extract timestamps.
+* `label_expression` [object](https://pkg.go.dev/github.com/ttab/eleconf#LabelExpression): label expression used to extract labels.
 
 #### Workflow object
 
