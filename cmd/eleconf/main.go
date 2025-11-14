@@ -17,12 +17,23 @@ import (
 
 const appName = "eleconf"
 
+var version = "dev"
+
 func main() {
 	err := clitools.LoadEnv(appName)
 	if err != nil {
 		slog.Error("exiting: ",
 			elephantine.LogKeyError, err)
 		os.Exit(1)
+	}
+
+	versionCmd := cli.Command{
+		Name: "version",
+		Action: cli.ActionFunc(func(c *cli.Context) error {
+			println(version)
+
+			return nil
+		}),
 	}
 
 	updateCmd := cli.Command{
@@ -74,6 +85,7 @@ func main() {
 		Name:  "eleconf",
 		Usage: "Elephant repository configuration tool",
 		Commands: []*cli.Command{
+			&versionCmd,
 			&updateCmd,
 			&applyCmd,
 		},
