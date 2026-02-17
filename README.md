@@ -8,6 +8,8 @@ Enforces configuration for:
     * Meta type configuration
     * Document statuses
     * Document workflows
+    * Document type configuration (bounded collections, time/label expressions, eviction)
+    * Metric kinds
 
 ## Configuration
 
@@ -51,7 +53,9 @@ Document blocks are used to configure document types.
 * `meta_doc` string: the document type that should be used for meta documents, optional.
 * `statuses` string slice: all the statuses that are valid for the document type.
 * `workflow` object: defintion of the workflow for the document, optional.
+* `attachment` block: attachment configuration with `name` (label), `required` (bool), and `match_mimetype` (string slice).
 * `bounded_collection` bool: whether the document type is a bounded collection (finite and small number of documents).
+* `evict_noncurrent_after` int: evict non-current document versions after this many seconds, optional.
 * `time_expression` [object](https://pkg.go.dev/github.com/ttab/eleconf#TimeExpression): time expression used to extract timestamps.
 * `label_expression` [object](https://pkg.go.dev/github.com/ttab/eleconf#LabelExpression): label expression used to extract labels.
 
@@ -112,14 +116,13 @@ All changes to schemas require lockfile update. So the first thing you have to d
 eleconf update -dir examples/tt
 ```
 
-To apply the configuration to a repository installation run `apply`: 
+To apply the configuration to a repository installation run `apply`:
 
 ``` shellsession
-eleconf apply -auth-env stage \
-    -customer 000 \
-    -endpoint https://repository.stage.tt.se \
-    -dir examples/tt
+eleconf apply -env stage -dir examples/tt
 ```
+
+The `apply` command accepts `--env` to select the environment configuration, and optionally `--client-id` and `--client-secret` for client credentials authentication. The repository endpoint is resolved from the environment configuration.
 
 This will compare the current configuration with the one declared in the configuration directory, detail the changes, and ask for confirmation before applying.
 
