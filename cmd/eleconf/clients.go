@@ -9,17 +9,17 @@ import (
 	"github.com/ttab/clitools"
 	"github.com/ttab/eleconf"
 	"github.com/ttab/elephant-api/repository"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"golang.org/x/oauth2"
 )
 
 func getClients(
 	ctx context.Context,
-	c *cli.Context,
+	cmd *cli.Command,
 ) (*eleconf.StaticClients, error) {
-	clientID := c.String("client-id")
-	clientSecret := c.String("client-secret")
-	env := c.String("env")
+	clientID := cmd.String("client-id")
+	clientSecret := cmd.String("client-secret")
+	env := cmd.String("env")
 
 	if clientID == "" {
 		clientID = clitools.DefaultApplicationID

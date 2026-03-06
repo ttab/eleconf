@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -12,7 +13,7 @@ import (
 	"github.com/ttab/clitools"
 	"github.com/ttab/eleconf"
 	"github.com/ttab/elephantine"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 const appName = "eleconf"
@@ -29,11 +30,11 @@ func main() {
 
 	versionCmd := cli.Command{
 		Name: "version",
-		Action: cli.ActionFunc(func(c *cli.Context) error {
+		Action: func(_ context.Context, _ *cli.Command) error {
 			println(version)
 
 			return nil
-		}),
+		},
 	}
 
 	updateCmd := cli.Command{
@@ -41,23 +42,11 @@ func main() {
 		Description: "Refresh schema lockfile",
 		Action:      updateAction,
 		Flags: []cli.Flag{
-			&cli.PathFlag{
-				Name:  "dir",
-				Usage: "Configuration directory",
-				Value: cli.Path("."),
-			},
-		},
-	}
-
-	applyCmd := cli.Command{
-		Name:        "apply",
-		Description: "Applies elephant configuration",
-		Action:      applyAction,
-		Flags: []cli.Flag{
-			&cli.PathFlag{
-				Name:  "dir",
-				Usage: "Configuration directory",
-				Value: cli.Path("."),
+			&cli.StringFlag{
+				Name:      "dir",
+				Usage:     "Configuration directory",
+				Value:     ".",
+				TakesFile: true,
 			},
 		},
 	}
@@ -65,42 +54,53 @@ func main() {
 	authFlags := []cli.Flag{
 		&cli.StringFlag{
 			Name:    "env",
-			EnvVars: []string{"ENV"},
+			Sources: cli.EnvVars("ENV"),
 		},
 		&cli.StringFlag{
 			Name:    "client-id",
 			Usage:   "Client ID",
-			EnvVars: []string{"CLIENT_ID"},
+			Sources: cli.EnvVars("CLIENT_ID"),
 		},
 		&cli.StringFlag{
 			Name:    "client-secret",
 			Usage:   "Client secret",
-			EnvVars: []string{"CLIENT_SECRET"},
+			Sources: cli.EnvVars("CLIENT_SECRET"),
 		},
 	}
 
-	applyCmd.Flags = append(applyCmd.Flags, authFlags...)
+	applyCmd := cli.Command{
+		Name:        "apply",
+		Description: "Applies elephant configuration",
+		Action:      applyAction,
+		Flags: append([]cli.Flag{
+			&cli.StringFlag{
+				Name:      "dir",
+				Usage:     "Configuration directory",
+				Value:     ".",
+				TakesFile: true,
+			},
+		}, authFlags...),
+	}
 
-	app := cli.App{
+	app := &cli.Command{
 		Name:  "eleconf",
 		Usage: "Elephant repository configuration tool",
 		Commands: []*cli.Command{
 			&versionCmd,
 			&updateCmd,
 			&applyCmd,
+			clitools.ConfigureCliCommands("eleconf", clitools.DefaultApplicationID),
 		},
 	}
 
-	if err := app.Run(os.Args); err != nil {
+	if err := app.Run(context.Background(), os.Args); err != nil {
 		println("error: ", err.Error())
 		os.Exit(1)
 	}
 }
 
-func updateAction(c *cli.Context) error {
-	dir := c.Path("dir")
-
-	ctx := c.Context
+func updateAction(ctx context.Context, cmd *cli.Command) error {
+	dir := cmd.String("dir")
 
 	conf, err := eleconf.ReadConfigFromDirectory(dir)
 	if err != nil {
@@ -133,10 +133,8 @@ func updateAction(c *cli.Context) error {
 	return nil
 }
 
-func applyAction(c *cli.Context) error {
-	dir := c.Path("dir")
-
-	ctx := c.Context
+func applyAction(ctx context.Context, cmd *cli.Command) error {
+	dir := cmd.String("dir")
 
 	conf, err := eleconf.ReadConfigFromDirectory(dir)
 	if err != nil {
@@ -162,7 +160,7 @@ func applyAction(c *cli.Context) error {
 		schemas = append(schemas, loaded...)
 	}
 
-	clients, err := getClients(ctx, c)
+	clients, err := getClients(ctx, cmd)
 	if err != nil {
 		return fmt.Errorf("get API clients: %w", err)
 	}
