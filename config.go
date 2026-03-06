@@ -26,6 +26,7 @@ type DocumentConfig struct {
 	BoundedCollection bool               `hcl:"bounded_collection,optional"`
 	TimeExpressions   []TimeExpression   `hcl:"time_expression,block"`
 	LabelExpressions  []LabelExpression  `hcl:"label_expression,block"`
+	Variants          []string           `hcl:"variants,optional"`
 }
 
 type TimeExpression struct {

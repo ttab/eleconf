@@ -59,6 +59,8 @@ func GetTypeConfigurationChanges(
 					})
 			}
 
+			s.Variants = current.Configuration.Variants
+
 			spec = s
 		}
 
@@ -70,6 +72,7 @@ func GetTypeConfigurationChanges(
 			Bounded:          doc.BoundedCollection,
 			TimeExpressions:  doc.TimeExpressions,
 			LabelExpressions: doc.LabelExpressions,
+			Variants:         doc.Variants,
 		}
 	}
 
@@ -126,6 +129,7 @@ type TypeConfigSpec struct {
 	Bounded          bool
 	TimeExpressions  []TimeExpression
 	LabelExpressions []LabelExpression
+	Variants         []string
 }
 
 var _ ConfigurationChange = &TypeConfigurationChange{}
@@ -169,6 +173,8 @@ func (t *TypeConfigurationChange) Execute(ctx context.Context, c Clients) error 
 				Template:   exp.Template,
 			})
 	}
+
+	config.Variants = t.Wanted.Variants
 
 	_, err := schemas.ConfigureType(ctx, &repository.ConfigureTypeRequest{
 		Type:          t.Type,
