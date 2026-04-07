@@ -118,6 +118,17 @@ func ReadConfigFromDirectory(path string) (*Config, error) {
 		tutti.Metric = append(tutti.Metric, c.Metric...)
 	}
 
+	seen := make(map[string]bool, len(tutti.Documents))
+
+	for _, doc := range tutti.Documents {
+		if seen[doc.Type] {
+			return nil, fmt.Errorf(
+				"duplicate document type %q", doc.Type)
+		}
+
+		seen[doc.Type] = true
+	}
+
 	return &tutti, nil
 }
 
