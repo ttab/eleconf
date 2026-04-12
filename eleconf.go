@@ -7,6 +7,7 @@ import (
 	"github.com/ttab/elephant-api/repository"
 )
 
+// Clients provides access to the elephant repository API services.
 type Clients interface {
 	GetWorkflows() repository.Workflows
 	GetSchemas() repository.Schemas
@@ -15,6 +16,7 @@ type Clients interface {
 
 var _ Clients = &StaticClients{}
 
+// StaticClients is a simple Clients implementation with fixed service clients.
 type StaticClients struct {
 	Workflows repository.Workflows
 	Schemas   repository.Schemas
@@ -36,16 +38,21 @@ func (c *StaticClients) GetWorkflows() repository.Workflows {
 	return c.Workflows
 }
 
+// GetChanges computes all configuration changes needed to bring the remote
+// state in line with the desired configuration. Schema changes use
+// RegisterGeneration with the given activation status.
 func GetChanges(
 	ctx context.Context,
 	clients Clients,
 	conf *Config,
 	schemas []LoadedSchema,
+	exemplars []LoadedExemplar,
+	activation repository.SchemaActivation,
 ) ([]ConfigurationChange, error) {
 	var changes []ConfigurationChange
 
 	scChanges, err := GetSchemaChanges(
-		ctx, clients, conf, schemas)
+		ctx, clients, conf, schemas, exemplars, activation)
 	if err != nil {
 		return nil, fmt.Errorf("calculate schema changes: %w", err)
 	}
@@ -88,4 +95,18 @@ func GetChanges(
 	changes = append(changes, typChanges...)
 
 	return changes, nil
+}
+
+// GetGenerationChanges computes only the schema generation change, skipping
+// all other configuration domains. Used by the "generation pending" command.
+func GetGenerationChanges(
+	ctx context.Context,
+	clients Clients,
+	conf *Config,
+	schemas []LoadedSchema,
+	exemplars []LoadedExemplar,
+	activation repository.SchemaActivation,
+) ([]ConfigurationChange, error) {
+	return GetSchemaChanges(
+		ctx, clients, conf, schemas, exemplars, activation)
 }

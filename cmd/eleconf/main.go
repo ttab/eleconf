@@ -12,6 +12,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/ttab/clitools"
 	"github.com/ttab/eleconf"
+	"github.com/ttab/elephant-api/repository"
 	"github.com/ttab/elephantine"
 	"github.com/urfave/cli/v3"
 )
@@ -39,7 +40,7 @@ func main() {
 
 	updateCmd := cli.Command{
 		Name:        "update",
-		Description: "Refresh schema lockfile",
+		Description: "Refresh schema and exemplar lockfile",
 		Action:      updateAction,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
@@ -82,6 +83,28 @@ func main() {
 		}, authFlags...),
 	}
 
+	generationPendingCmd := cli.Command{
+		Name:        "pending",
+		Description: "Register a pending schema generation without applying other configuration",
+		Action:      generationPendingAction,
+		Flags: append([]cli.Flag{
+			&cli.StringFlag{
+				Name:      "dir",
+				Usage:     "Configuration directory",
+				Value:     ".",
+				TakesFile: true,
+			},
+		}, authFlags...),
+	}
+
+	generationCmd := cli.Command{
+		Name:        "generation",
+		Description: "Schema generation management",
+		Commands: []*cli.Command{
+			&generationPendingCmd,
+		},
+	}
+
 	app := &cli.Command{
 		Name:  "eleconf",
 		Usage: "Elephant repository configuration tool",
@@ -89,6 +112,7 @@ func main() {
 			&versionCmd,
 			&updateCmd,
 			&applyCmd,
+			&generationCmd,
 			clitools.ConfigureCliCommands("eleconf", clitools.DefaultApplicationID),
 		},
 	}
@@ -123,7 +147,13 @@ func updateAction(ctx context.Context, cmd *cli.Command) error {
 		schemas = append(schemas, loaded...)
 	}
 
-	lock = eleconf.NewSchemaLockFile(schemas)
+	// Load exemplars from the exemplars/ directory.
+	exemplars, err := eleconf.LoadExemplars(dir)
+	if err != nil {
+		return fmt.Errorf("load exemplars: %w", err)
+	}
+
+	lock = eleconf.NewSchemaLockFile(schemas, eleconf.ExemplarLocks(exemplars))
 
 	err = lock.Save(eleconf.LockFilePath(dir))
 	if err != nil {
@@ -133,19 +163,20 @@ func updateAction(ctx context.Context, cmd *cli.Command) error {
 	return nil
 }
 
-func applyAction(ctx context.Context, cmd *cli.Command) error {
-	dir := cmd.String("dir")
-
+func loadSchemasAndExemplars(
+	ctx context.Context, dir string,
+) (*eleconf.Config, []eleconf.LoadedSchema, []eleconf.LoadedExemplar, error) {
 	conf, err := eleconf.ReadConfigFromDirectory(dir)
 	if err != nil {
-		return fmt.Errorf("read configuration: %w", err)
+		return nil, nil, nil, fmt.Errorf("read configuration: %w", err)
 	}
 
 	lock, err := eleconf.LoadLockFile(eleconf.LockFilePath(dir))
 	if errors.Is(err, os.ErrNotExist) {
-		return errors.New("missing lock file, run eleconf update")
+		return nil, nil, nil, errors.New(
+			"missing lock file, run eleconf update")
 	} else if err != nil {
-		return fmt.Errorf("load lock file: %w", err)
+		return nil, nil, nil, fmt.Errorf("load lock file: %w", err)
 	}
 
 	var schemas []eleconf.LoadedSchema
@@ -153,11 +184,32 @@ func applyAction(ctx context.Context, cmd *cli.Command) error {
 	for _, set := range conf.SchemaSets {
 		loaded, err := eleconf.LoadSchemaSet(ctx, set, lock, false)
 		if err != nil {
-			return fmt.Errorf("load schema set %q: %w",
+			return nil, nil, nil, fmt.Errorf("load schema set %q: %w",
 				set.Name, err)
 		}
 
 		schemas = append(schemas, loaded...)
+	}
+
+	exemplars, err := eleconf.LoadExemplars(dir)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("load exemplars: %w", err)
+	}
+
+	err = lock.CheckExemplars(exemplars)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return conf, schemas, exemplars, nil
+}
+
+func applyAction(ctx context.Context, cmd *cli.Command) error {
+	dir := cmd.String("dir")
+
+	conf, schemas, exemplars, err := loadSchemasAndExemplars(ctx, dir)
+	if err != nil {
+		return err
 	}
 
 	clients, err := getClients(ctx, cmd)
@@ -165,11 +217,43 @@ func applyAction(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("get API clients: %w", err)
 	}
 
-	changes, err := eleconf.GetChanges(ctx, clients, conf, schemas)
+	changes, err := eleconf.GetChanges(ctx, clients, conf, schemas,
+		exemplars, repository.SchemaActivation_ACTIVATION_ACTIVE)
 	if err != nil {
 		return fmt.Errorf("get changes: %w", err)
 	}
 
+	return displayAndApplyChanges(ctx, clients, changes)
+}
+
+func generationPendingAction(ctx context.Context, cmd *cli.Command) error {
+	dir := cmd.String("dir")
+
+	conf, schemas, exemplars, err := loadSchemasAndExemplars(ctx, dir)
+	if err != nil {
+		return err
+	}
+
+	clients, err := getClients(ctx, cmd)
+	if err != nil {
+		return fmt.Errorf("get API clients: %w", err)
+	}
+
+	changes, err := eleconf.GetGenerationChanges(ctx, clients, conf,
+		schemas, exemplars,
+		repository.SchemaActivation_ACTIVATION_PENDING)
+	if err != nil {
+		return fmt.Errorf("get generation changes: %w", err)
+	}
+
+	return displayAndApplyChanges(ctx, clients, changes)
+}
+
+func displayAndApplyChanges(
+	ctx context.Context,
+	clients *eleconf.StaticClients,
+	changes []eleconf.ConfigurationChange,
+) error {
 	for _, change := range changes {
 		op, info := change.Describe()
 
@@ -226,7 +310,7 @@ func applyAction(ctx context.Context, cmd *cli.Command) error {
 
 		err := change.Execute(ctx, clients)
 		if err != nil {
-			return fmt.Errorf("failed to apply change: %w", err)
+			return fmt.Errorf("apply change: %w", err)
 		}
 	}
 

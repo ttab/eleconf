@@ -5,18 +5,22 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/Masterminds/semver/v3"
+	rpcdoc "github.com/ttab/elephant-api/newsdoc"
 	"github.com/ttab/elephant-api/repository"
-	"github.com/ttab/elephantine"
 	"github.com/ttab/revisor"
-	"github.com/twitchtv/twirp"
 )
 
+// GetSchemaChanges computes the schema changes needed to bring the remote
+// state in line with the desired configuration. With schema generations,
+// this produces at most one change: a generationChange that registers
+// all schemas as a generation.
 func GetSchemaChanges(
 	ctx context.Context,
 	clients Clients,
 	conf *Config,
 	loaded []LoadedSchema,
+	exemplars []LoadedExemplar,
+	activation repository.SchemaActivation,
 ) ([]ConfigurationChange, error) {
 	schemas := clients.GetSchemas()
 
@@ -27,41 +31,199 @@ func GetSchemaChanges(
 			"get active schemas: %w", err)
 	}
 
-	activateSchemas, err := getSchemaChanges(
-		ctx, loaded, active.Schemas)
-	if err != nil {
-		return nil, err
-	}
-
 	err = checkDocsDefined(loaded, conf.Documents)
 	if err != nil {
 		return nil, err
 	}
 
-	updates := make([]ConfigurationChange,
-		len(activateSchemas))
+	var currentExemplars []*repository.Exemplar
 
-	for i := range activateSchemas {
-		updates[i] = activateSchemas[i]
+	if active.GenerationId > 0 && len(exemplars) > 0 {
+		exRes, exErr := schemas.GetExemplars(ctx,
+			&repository.GetExemplarsRequest{
+				GenerationId: active.GenerationId,
+			})
+		if exErr != nil {
+			return nil, fmt.Errorf(
+				"get current exemplars: %w", exErr)
+		}
+
+		currentExemplars = exRes.Exemplars
 	}
 
-	return updates, nil
+	// Check if the desired set matches the current active generation.
+	if generationMatchesCurrent(loaded, exemplars, active, currentExemplars) {
+		return nil, nil
+	}
+
+	return []ConfigurationChange{
+		generationChange{
+			Schemas:          loaded,
+			Exemplars:        exemplars,
+			Activation:       activation,
+			Current:          active.Schemas,
+			CurrentExemplars: currentExemplars,
+		},
+	}, nil
 }
 
-var _ ConfigurationChange = schemaChange{}
-
-func versionCompare(v1 string, v2 string) (int, error) {
-	a, err := semver.NewVersion(v1)
-	if err != nil {
-		return 0, fmt.Errorf("invalid version %q: %w", v1, err)
+func generationMatchesCurrent(
+	schemas []LoadedSchema,
+	exemplars []LoadedExemplar,
+	active *repository.ListActiveSchemasResponse,
+	currentExemplars []*repository.Exemplar,
+) bool {
+	if len(schemas) != len(active.Schemas) {
+		return false
 	}
 
-	b, err := semver.NewVersion(v2)
-	if err != nil {
-		return 0, fmt.Errorf("invalid version %q: %w", v2, err)
+	activeMap := make(map[string]string, len(active.Schemas))
+	for _, s := range active.Schemas {
+		activeMap[s.Name] = s.Version
 	}
 
-	return a.Compare(b), nil
+	for _, s := range schemas {
+		if activeMap[s.Lock.Name] != s.Lock.Version {
+			return false
+		}
+	}
+
+	if len(exemplars) != len(currentExemplars) {
+		return false
+	}
+
+	exemplarMap := make(map[string]string, len(currentExemplars))
+	for _, ex := range currentExemplars {
+		exemplarMap[ex.Name] = ex.VersionHash
+	}
+
+	for _, ex := range exemplars {
+		if exemplarMap[ex.Lock.Name] != ex.Lock.Hash {
+			return false
+		}
+	}
+
+	return true
+}
+
+var _ ConfigurationChange = generationChange{}
+
+type generationChange struct {
+	Schemas          []LoadedSchema
+	Exemplars        []LoadedExemplar
+	Activation       repository.SchemaActivation
+	Current          []*repository.Schema
+	CurrentExemplars []*repository.Exemplar
+}
+
+func (gc generationChange) Describe() (ChangeOp, string) {
+	op := OpUpdate
+
+	activationStr := "active"
+	if gc.Activation == repository.SchemaActivation_ACTIVATION_PENDING {
+		activationStr = "pending"
+	}
+
+	desc := fmt.Sprintf("register %s generation with %d schemas",
+		activationStr, len(gc.Schemas))
+
+	if len(gc.Exemplars) > 0 {
+		desc += fmt.Sprintf(" and %d exemplars", len(gc.Exemplars))
+	}
+
+	currentMap := make(map[string]string, len(gc.Current))
+	for _, s := range gc.Current {
+		currentMap[s.Name] = s.Version
+	}
+
+	desiredMap := make(map[string]bool, len(gc.Schemas))
+
+	for _, s := range gc.Schemas {
+		desiredMap[s.Lock.Name] = true
+
+		curVersion, exists := currentMap[s.Lock.Name]
+
+		switch {
+		case !exists:
+			desc += fmt.Sprintf("\n  + %s@%s",
+				s.Lock.Name, s.Lock.Version)
+		case curVersion != s.Lock.Version:
+			desc += fmt.Sprintf("\n  ~ %s@%s -> %s",
+				s.Lock.Name, curVersion, s.Lock.Version)
+		}
+	}
+
+	for _, s := range gc.Current {
+		if !desiredMap[s.Name] {
+			desc += fmt.Sprintf("\n  - %s@%s", s.Name, s.Version)
+		}
+	}
+
+	curExemplarMap := make(map[string]string, len(gc.CurrentExemplars))
+	for _, ex := range gc.CurrentExemplars {
+		curExemplarMap[ex.Name] = ex.VersionHash
+	}
+
+	desiredExemplarMap := make(map[string]bool, len(gc.Exemplars))
+
+	for _, ex := range gc.Exemplars {
+		desiredExemplarMap[ex.Lock.Name] = true
+
+		curHash, exists := curExemplarMap[ex.Lock.Name]
+
+		switch {
+		case !exists:
+			desc += fmt.Sprintf("\n  + exemplar %s (%s)",
+				ex.Lock.Name, ex.Lock.DocType)
+		case curHash != ex.Lock.Hash:
+			desc += fmt.Sprintf("\n  ~ exemplar %s (%s)",
+				ex.Lock.Name, ex.Lock.DocType)
+		}
+	}
+
+	for _, ex := range gc.CurrentExemplars {
+		if !desiredExemplarMap[ex.Name] {
+			desc += fmt.Sprintf("\n  - exemplar %s", ex.Name)
+		}
+	}
+
+	return op, desc
+}
+
+func (gc generationChange) Execute(
+	ctx context.Context,
+	clients Clients,
+) error {
+	schemas := clients.GetSchemas()
+
+	rpcSchemas := make([]*repository.Schema, 0, len(gc.Schemas))
+
+	for _, s := range gc.Schemas {
+		rpcSchemas = append(rpcSchemas, &repository.Schema{
+			Name:    s.Lock.Name,
+			Version: s.Lock.Version,
+			Spec:    string(s.Data),
+		})
+	}
+
+	rpcExemplars := make([]*rpcdoc.Document, 0, len(gc.Exemplars))
+
+	for _, ex := range gc.Exemplars {
+		rpcExemplars = append(rpcExemplars,
+			rpcdoc.DocumentToRPC(ex.Document))
+	}
+
+	_, err := schemas.RegisterGeneration(ctx,
+		&repository.RegisterGenerationRequest{
+			Schemas:    rpcSchemas,
+			Activation: gc.Activation,
+			Exemplars:  rpcExemplars,
+		})
+	if err != nil {
+		return fmt.Errorf("register generation: %w", err)
+	}
+
+	return nil
 }
 
 // Check that all doc types are defined in schemas.
@@ -106,173 +268,4 @@ func checkDocsDefined(
 	}
 
 	return nil
-}
-
-func getSchemaChanges(
-	ctx context.Context,
-	schemas []LoadedSchema,
-	active []*repository.Schema,
-) ([]schemaChange, error) {
-	wantedLookup := make(map[string]LoadedSchema, len(schemas))
-
-	for _, s := range schemas {
-		wantedLookup[s.Lock.Name] = s
-	}
-
-	activeLookup := make(map[string]string, len(active))
-
-	var changes []schemaChange
-
-	for _, s := range active {
-		activeLookup[s.Name] = s.Version
-
-		wanted, ok := wantedLookup[s.Name]
-		if !ok {
-			changes = append(changes,
-				schemaChange{
-					Name:           s.Name,
-					Deactivate:     true,
-					CurrentVersion: s.Version,
-				})
-
-			continue
-		}
-
-		if s.Version != wanted.Lock.Version {
-			cmp, err := versionCompare(
-				s.Version,
-				wanted.Lock.Version)
-			if err != nil {
-				return nil, fmt.Errorf(
-					"compare %s versions: %w",
-					s.Name, err)
-			}
-
-			// Up- or downgrade.
-			changes = append(changes, schemaChange{
-				Name:           s.Name,
-				CurrentVersion: s.Version,
-				Schema:         wanted,
-				IsDowngrade:    cmp > 0,
-			})
-
-			continue
-		}
-	}
-
-	for name, w := range wantedLookup {
-		_, ok := activeLookup[name]
-		if ok {
-			continue
-		}
-
-		// New schemas.
-		changes = append(changes, schemaChange{
-			Name:   name,
-			Schema: w,
-		})
-	}
-
-	return changes, nil
-}
-
-type schemaChange struct {
-	Name           string
-	CurrentVersion string
-	IsDowngrade    bool
-	Deactivate     bool
-	Schema         LoadedSchema
-}
-
-func (sc schemaChange) Warnings() []string {
-	var warnings []string
-
-	if sc.IsDowngrade {
-		warnings = append(warnings,
-			"downgrading schema")
-	}
-
-	return warnings
-}
-
-func (sc schemaChange) Execute(
-	ctx context.Context,
-	clients Clients,
-) error {
-	schemas := clients.GetSchemas()
-
-	if sc.Deactivate {
-		_, err := schemas.SetActive(ctx,
-			&repository.SetActiveSchemaRequest{
-				Name:       sc.Name,
-				Deactivate: true,
-			})
-
-		return err
-	}
-
-	var activateExisting bool
-
-	_, err := schemas.Register(ctx,
-		&repository.RegisterSchemaRequest{
-			Schema: &repository.Schema{
-				Name:    sc.Name,
-				Version: sc.Schema.Lock.Version,
-				Spec:    string(sc.Schema.Data),
-			},
-			Activate: true,
-		})
-	if elephantine.IsTwirpErrorCode(err,
-		twirp.FailedPrecondition) {
-		// The schema verion already exists, do a simple activate
-		// instead.
-		activateExisting = true
-	} else if err != nil {
-		return fmt.Errorf("register schema: %w", err)
-	}
-
-	if !activateExisting {
-		return nil
-	}
-
-	_, err = schemas.SetActive(ctx,
-		&repository.SetActiveSchemaRequest{
-			Name:    sc.Name,
-			Version: sc.Schema.Lock.Version,
-		})
-	if err != nil {
-		return fmt.Errorf("activate version: %w", err)
-	}
-
-	return nil
-}
-
-func (sc schemaChange) Describe() (ChangeOp, string) {
-	switch {
-	case sc.Deactivate:
-		return OpRemove, fmt.Sprintf(
-			"deactivate schema %s@%s",
-			sc.Name, sc.CurrentVersion)
-
-	case sc.CurrentVersion != "":
-		op := "upgrade"
-		if sc.IsDowngrade {
-			op = "downgrade"
-		}
-
-		return OpUpdate, fmt.Sprintf(
-			"schema %s %s %s => %s",
-			op,
-			sc.Name,
-			sc.CurrentVersion,
-			sc.Schema.Lock.Version,
-		)
-
-	default:
-		return OpAdd, fmt.Sprintf(
-			"activate schema %s@%s",
-			sc.Name,
-			sc.Schema.Lock.Version)
-
-	}
 }
