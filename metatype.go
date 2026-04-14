@@ -42,6 +42,11 @@ func GetMetaTypeChanges(
 			continue
 		}
 
+		_, variant := ParseDocumentType(doc.Type)
+		if variant != "" {
+			continue
+		}
+
 		usedLookup[doc.Type] = doc.MetaDocType
 		metaUsed[doc.MetaDocType] = true
 	}

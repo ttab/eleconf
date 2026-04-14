@@ -83,6 +83,16 @@ const (
 	MetricAggregationIncrement MetricAggregation = "increment"
 )
 
+// ParseDocumentType splits a document type string into its base type and
+// optional variant. For "core/article#timeless" it returns
+// ("core/article", "timeless"). For "core/article" it returns
+// ("core/article", "").
+func ParseDocumentType(docType string) (baseType, variant string) {
+	base, v, _ := strings.Cut(docType, "#")
+
+	return base, v
+}
+
 type SchemaLock struct {
 	Name    string `json:"name"`
 	URL     string `json:"url,omitempty"`
@@ -127,6 +137,51 @@ func ReadConfigFromDirectory(path string) (*Config, error) {
 		}
 
 		seen[doc.Type] = true
+	}
+
+	// Build a map of base type -> declared variants for validation.
+	baseVariants := make(map[string]map[string]bool)
+
+	for _, doc := range tutti.Documents {
+		_, variant := ParseDocumentType(doc.Type)
+		if variant != "" {
+			continue
+		}
+
+		if len(doc.Variants) > 0 {
+			vs := make(map[string]bool, len(doc.Variants))
+			for _, v := range doc.Variants {
+				vs[v] = true
+			}
+
+			baseVariants[doc.Type] = vs
+		}
+	}
+
+	for _, doc := range tutti.Documents {
+		base, variant := ParseDocumentType(doc.Type)
+		if variant == "" {
+			continue
+		}
+
+		if len(doc.Variants) > 0 {
+			return nil, fmt.Errorf(
+				"variant document %q must not define variants",
+				doc.Type)
+		}
+
+		if !seen[base] {
+			return nil, fmt.Errorf(
+				"variant document %q: base type %q has not been defined",
+				doc.Type, base)
+		}
+
+		declared := baseVariants[base]
+		if !declared[variant] {
+			return nil, fmt.Errorf(
+				"variant document %q: variant %q has not been declared for %q",
+				doc.Type, variant, base)
+		}
 	}
 
 	return &tutti, nil

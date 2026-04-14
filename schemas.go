@@ -252,18 +252,18 @@ func checkDocsDefined(
 	}
 
 	for _, dc := range docs {
-		defined := definedDocTypes[dc.Type]
-		if !defined {
+		baseType, _ := ParseDocumentType(dc.Type)
+
+		if !definedDocTypes[baseType] {
 			return fmt.Errorf(
 				"document type %q has not been defined in schemas",
 				dc.Type)
 		}
 
-		mDef := definedDocTypes[dc.MetaDocType]
-		if dc.MetaDocType != "" && !mDef {
+		if dc.MetaDocType != "" && !definedDocTypes[dc.MetaDocType] {
 			return fmt.Errorf(
 				"meta document type %q has not been defined in schemas",
-				dc.Type)
+				dc.MetaDocType)
 		}
 	}
 

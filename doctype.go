@@ -68,6 +68,11 @@ func GetTypeConfigurationChanges(
 	}
 
 	for _, doc := range conf.Documents {
+		_, variant := ParseDocumentType(doc.Type)
+		if variant != "" {
+			continue
+		}
+
 		wantMap[doc.Type] = TypeConfigSpec{
 			Bounded:          doc.BoundedCollection,
 			TimeExpressions:  doc.TimeExpressions,
