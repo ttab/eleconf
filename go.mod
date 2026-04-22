@@ -10,7 +10,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/ttab/clitools v1.0.1
 	github.com/ttab/elephant-api v0.22.1
-	github.com/ttab/elephantine v0.25.0
+	github.com/ttab/elephantine v0.26.1
 	github.com/ttab/newsdoc v1.0.0
 	github.com/ttab/revisor v0.11.2
 	github.com/twitchtv/twirp v8.1.3+incompatible
