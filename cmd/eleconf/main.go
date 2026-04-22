@@ -105,6 +105,13 @@ func main() {
 		},
 	}
 
+	diffCmd := cli.Command{
+		Name:        "diff",
+		Description: "Compare HCL configuration files between two directories",
+		ArgsUsage:   "[<dir-a>] <dir-b>",
+		Action:      diffAction,
+	}
+
 	app := &cli.Command{
 		Name:  "eleconf",
 		Usage: "Elephant repository configuration tool",
@@ -113,6 +120,7 @@ func main() {
 			&updateCmd,
 			&applyCmd,
 			&generationCmd,
+			&diffCmd,
 			clitools.ConfigureCliCommands("eleconf", clitools.DefaultApplicationID),
 		},
 	}
