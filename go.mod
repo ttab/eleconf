@@ -9,7 +9,7 @@ require (
 	github.com/hashicorp/hcl/v2 v2.24.0
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/ttab/clitools v1.0.1
-	github.com/ttab/elephant-api v0.22.1
+	github.com/ttab/elephant-api v0.22.2
 	github.com/ttab/elephantine v0.25.0
 	github.com/ttab/newsdoc v1.0.0
 	github.com/ttab/revisor v0.11.2
