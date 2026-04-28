@@ -167,8 +167,8 @@ github.com/ttab/elephantine v0.25.0 h1:0Z9tvlqzVD2rUSwwihOK/iqtjoPO0Xh0JzTCWUSRz
 github.com/ttab/elephantine v0.25.0/go.mod h1:T4ZtP2Clg236YZehCituqPCDFZ2PuBn/BoX5gYkCtvE=
 github.com/ttab/newsdoc v1.0.0 h1:ftGbUkReu+teOGuh00eZgeSraghzyMaMEJQ0acrFYDw=
 github.com/ttab/newsdoc v1.0.0/go.mod h1:Lt4bBWEsP3b5ChLwzuQ4fvxcfnv2u5DwrV9ADmE5ViQ=
-github.com/ttab/revisor v0.11.2 h1:AwQOSrbW/zNYxC5XATxQTIckkrmbOju8Zv08h+s3BkY=
-github.com/ttab/revisor v0.11.2/go.mod h1:By0/kKtwwl1HgAqgz6NCsZPuoXhJyf1GmuXlC5YpTRo=
+github.com/ttab/revisor v1.0.0 h1:KMJeze+n2HIcB4Y0AIRn5oob6XNRWjm5x8ieyHLZADQ=
+github.com/ttab/revisor v1.0.0/go.mod h1:eo5GmHHxOy7A2ol3EgsTz7G4OTM2q6OcmeZWcj5UoHQ=
 github.com/twitchtv/twirp v8.1.3+incompatible h1:+F4TdErPgSUbMZMwp13Q/KgDVuI7HJXP61mNV3/7iuU=
 github.com/twitchtv/twirp v8.1.3+incompatible/go.mod h1:RRJoFSAmTEh2weEqWtpPE3vFK5YBhA6bqp2l1kfCC5A=
 github.com/urfave/cli/v3 v3.8.0 h1:XqKPrm0q4P0q5JpoclYoCAv0/MIvH/jZ2umzuf8pNTI=
