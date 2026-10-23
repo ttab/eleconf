@@ -12,7 +12,7 @@ require (
 	github.com/ttab/elephant-api v0.22.1
 	github.com/ttab/elephantine v0.25.0
 	github.com/ttab/newsdoc v1.0.0
-	github.com/ttab/revisor v0.11.2
+	github.com/ttab/revisor v1.0.0
 	github.com/twitchtv/twirp v8.1.3+incompatible
 	github.com/urfave/cli/v3 v3.8.0
 	golang.org/x/oauth2 v0.36.0
